@@ -1,0 +1,85 @@
+ import lombok.Data;
+
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * @author yanyapan
+ * @param <T>
+ */
+@Data
+public class PageModel<T> {
+
+    /**
+     * 当前页
+     */
+    private int currentPage;
+
+    /**
+     * 总页数
+     */
+    private int totalPage;
+
+    /**
+     * 页面容量
+     */
+    private int pageSize;
+
+    /**
+     * 总数据数
+     */
+    private int totalRecordCount;
+
+    /**
+     * 当前页数据集
+     */
+    private List<T> records = Collections.emptyList();
+
+
+    public static <T> PageModel<T> build(List<T> records, int current, int totalRecordCount, int pageSize) {
+        PageModel<T> pageModel = new PageModel<T>();
+        pageModel.setCurrentPage(current);
+        pageModel.setPageSize(pageSize);
+        pageModel.setRecords(records);
+        pageModel.setTotalRecordCount(totalRecordCount);
+        int pages = totalRecordCount / pageSize;
+        pageModel.setTotalPage((totalRecordCount) % pageSize == 0 ? pages : (pages + 1));
+        return pageModel;
+    }
+
+    public static<T> PageModel<T> emptyPageModel() {
+        return new PageModel();
+    }
+}
+
+
+import com.google.common.collect.Lists;
+import org.apache.commons.collections4.CollectionUtils;
+
+import java.util.List;
+
+/**
+ * @author yanyapan
+ */
+public class PaginationUtil {
+
+    /**
+     * 通用分页工具类
+     * @param data
+     * @param pageSize
+     * @param pageNum
+     * @param <T>
+     * @return
+     */
+    public static <T> PageModel<T> pagination(final List<T> data, final int pageSize, final int pageNum) {
+        if (CollectionUtils.isEmpty(data)) {
+            return PageModel.emptyPageModel();
+        }
+        List<List<T>> lists = Lists.partition(data, pageSize);
+        int localPageNum = pageNum;
+        if (localPageNum > lists.size()) {
+            localPageNum = lists.size();
+        }
+        return PageModel.build(lists.get(localPageNum - 1), pageNum, data.size(), pageSize);
+    }
+}
